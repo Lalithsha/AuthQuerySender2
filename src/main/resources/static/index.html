@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Auth query sender application</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/sockjs-client/1.5.1/sockjs.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js"></script>
+    <script type="text/javascript">
+        var stompClient = null;
+
+        function setConnected(connected){
+            document.getElementById('connect').disabled = connected;
+            document.getElementById('disconnect').disabled =!connected;
+            document.getElementById('response').innerHTML = '';
+        }
+
+        function connect(){
+            var socket = new SockJS('/ws');
+            stompClient = Stomp.over(socket);
+            stompClient.connect({},function(frame){
+            	setConnected(true);
+            	console.log('Connected: ' + frame);
+                stompClient.subscribe('/topic/query',function(messageOutput){
+                    showMessageOutput(JSON.parse(messageOutput.body).content);
+                });
+            });
+        }
+
+        function disconnect() {
+            if(stompClient != null) {
+                stompClient.disconnect();
+            }
+            setConnected(false);
+            console.log("Disconnected");
+        }
+
+        function sendMessage() {
+            var query = document.getElementById('query').value;
+            var tableName = document.getElementById('tableName').value;
+            stompClient.send('/app/send', {},
+                JSON.stringify({'tableName': tableName, 'query': query}));
+        }
+
+        function showMessageOutput(message) {
+            var response = document.getElementById('response');
+            var p = document.createElement('p');
+            p.style.wordWrap = 'break-word';
+            p.appendChild(document.createTextNode(" query: "+message.query +  "tableName"+ message.tableName ));
+            response.appendChild(p);
+        }
+
+    </script>
+</head>
+    <body onload="disconnect()">
+    <h1>Auth Query Sender Application</h1>
+    <div>
+        <input type="text" id="tableName" placeholder="Enter the table name" />
+        <input type="text" id="query" placeholder="Enter query to execute" />
+    </div>
+    <button id="connect" onclick="connect();">Connect</button>
+    <button id="disconnect" disabled="disabled" onclick="disconnect();">Disconnect</button>
+	<p id="response"></p>
+    </body>
+
+
+</html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
